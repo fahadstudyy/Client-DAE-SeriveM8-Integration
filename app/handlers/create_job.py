@@ -2,7 +2,7 @@ import os
 import logging
 import requests
 from datetime import date
-from app.utility import hubspot
+from app.utility.hubspot import get_deal_details_with_associations
 
 SERVICEM8_API_KEY = os.getenv("SERVICEM8_API_KEY")
 HUBSPOT_API_TOKEN = os.getenv("HUBSPOT_API_TOKEN")
@@ -70,19 +70,37 @@ def handle_create_job(event_data):
         logging.error("No deal_record_id provided in the event data.")
         return
 
-    details = hubspot.get_deal_details_with_associations(deal_id)
+    details = get_deal_details_with_associations(deal_id)
 
     if not details:
-        logging.error(f"Could not retrieve necessary details for deal {deal_id}. Aborting job creation.")
+        logging.error(
+            f"Could not retrieve necessary details for deal {deal_id}. Aborting job creation."
+        )
         return
 
+    service_categories = event_data.get("service_categories", "")
+    service_type = event_data.get("service_type", "")
+    enquiry_notes = event_data.get("enquiry_notes", "")
+    existing_description = details["job"].get("job_description", "")
+
+    def format_value(label, value):
+        items = [item.strip() for item in value.split(";") if item.strip()]
+        return f"{label}: {', '.join(items)}" if items else f"{label}:"
+
+    job_description = (
+        f"{format_value('Service Category', service_categories)}\n"
+        f"{format_value('Service Type', service_type)}\n"
+        f"Enquiry Notes: {enquiry_notes.strip()}\n\n"
+        f"{existing_description}"
+    )
+
     job_data = {
-        "status": "Quote", 
+        "status": "Quote",
         "job_address": details["job"].get("job_address"),
-        "job_description": details["job"].get("job_description"),
+        "job_description": job_description,
         "date": str(date.today()),
     }
-    
+
     job_uuid = create_servicem8_job(job_data)
     print(f"Created job in sm8 with UUID: {job_uuid}")
     if not job_uuid:
@@ -97,4 +115,4 @@ def handle_create_job(event_data):
 
     create_servicem8_job_contact(job_uuid, contact_data)
     if deal_id:
-            update_hubspot_deal_sm8_job_id(deal_id, job_uuid)
+        update_hubspot_deal_sm8_job_id(deal_id, job_uuid)
