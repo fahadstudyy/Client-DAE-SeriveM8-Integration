@@ -10,7 +10,6 @@ HUBSPOT_API_TOKEN = os.getenv("HUBSPOT_API_TOKEN")
 ON_SITE_QUOTE_SCHEDULED_PIPELINE_ID = "953048615"
 QUOTE_SENT_UNOPEN_PIPELINE_ID = "953048616"
 QUOTE_VIEWED_PIPELINE_ID = "953048617"
-CUSTOM_JOB_OBJECT_ID = "2-36823346"
 
 def find_hubspot_deal_by_job_uuid(job_uuid):
     url = "https://api.hubapi.com/crm/v3/objects/deals/search"
@@ -99,23 +98,15 @@ def get_deal_details_with_associations(deal_id):
         logging.warning(f"Aborting: No contacts associated with deal {deal_id}")
         return None
     
-    job_object_ids = get_associated_ids("deals", deal_id, CUSTOM_JOB_OBJECT_ID)
-    if not job_object_ids:
-        logging.warning(f"Aborting: No custom job objects associated with deal {deal_id}")
-        return None
 
     contact_props = ["firstname", "lastname", "email", "phone"]
     contacts = get_objects_properties("contacts", [contact_ids[0]], contact_props)
-    
-    job_props = ["job_address", "job_description"]
-    job_objects = get_objects_properties(CUSTOM_JOB_OBJECT_ID, [job_object_ids[0]], job_props)
 
-    if not contacts or not job_objects:
+    if not contacts:
         logging.error(f"Aborting: Failed to fetch properties for objects associated with deal {deal_id}")
         return None
 
     details = {
-        "contact": contacts[0].get("properties", {}),
-        "job": job_objects[0].get("properties", {})
+        "contact": contacts[0].get("properties", {})
     }
     return details

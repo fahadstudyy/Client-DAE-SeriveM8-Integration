@@ -81,7 +81,6 @@ def handle_create_job(event_data):
     service_categories = event_data.get("service_categories", "")
     service_type = event_data.get("service_type", "")
     enquiry_notes = event_data.get("enquiry_notes", "")
-    existing_description = details["job"].get("job_description", "")
 
     def format_value(label, value):
         items = [item.strip() for item in value.split(";") if item.strip()]
@@ -90,14 +89,11 @@ def handle_create_job(event_data):
     job_description = (
         f"{format_value('Service Category', service_categories)}\n"
         f"{format_value('Service Type', service_type)}\n"
-        f"Enquiry Notes: {enquiry_notes.strip()}\n\n"
-        f"{existing_description}"
+        f"Enquiry Notes: {enquiry_notes.strip()}"
     )
 
     job_data = {
         "status": "Quote",
-        "job_address": details["job"].get("job_address"),
-        "job_description": job_description,
         "date": str(date.today()),
     }
 
