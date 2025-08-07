@@ -10,7 +10,7 @@ HUBSPOT_API_TOKEN = os.getenv("HUBSPOT_API_TOKEN")
 ON_SITE_QUOTE_SCHEDULED_PIPELINE_ID = "1690811882"
 QUOTE_SENT_UNOPEN_PIPELINE_ID = "1690215923"
 QUOTE_VIEWED_PIPELINE_ID = "1690215924"
-CUSTOM_JOB_OBJECT_ID = "2-187120049"
+CUSTOM_JOB_OBJECT_ID = "2-36823346"
 
 def find_hubspot_deal_by_job_uuid(job_uuid):
     url = "https://api.hubapi.com/crm/v3/objects/deals/search"
