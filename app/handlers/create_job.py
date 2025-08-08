@@ -81,6 +81,7 @@ def handle_create_job(event_data):
     service_categories = event_data.get("service_categories", "")
     service_type = event_data.get("service_type", "")
     enquiry_notes = event_data.get("enquiry_notes", "")
+    job_address = event_data.get("job_street_address", "")
 
     def format_value(label, value):
         items = [item.strip() for item in value.split(";") if item.strip()]
@@ -94,6 +95,8 @@ def handle_create_job(event_data):
 
     job_data = {
         "status": "Quote",
+        "job_address": job_address,
+        "job_description": job_description,
         "date": str(date.today()),
     }
 
