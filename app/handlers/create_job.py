@@ -63,7 +63,7 @@ def update_hubspot_deal_sm8_job_id(deal_id, job_uuid):
 
 def handle_create_job(event_data):
     """
-    Handles the job creation process starting from a HubSpot Deal ID.
+    Handles the job creation process, now with a deal stage check.
     """
     deal_id = event_data.get("deal_record_id")
     if not deal_id:
@@ -71,13 +71,21 @@ def handle_create_job(event_data):
         return
 
     details = get_deal_details_with_associations(deal_id)
-
     if not details:
-        logging.error(
-            f"Could not retrieve necessary details for deal {deal_id}. Aborting job creation."
+        logging.error(f"Could not retrieve details for deal {deal_id}. Aborting.")
+        return
+
+    # --- Validation Logic ---
+    current_stage = details.get("dealstage")
+    if current_stage != REQUIRED_DEAL_STAGE_ID:
+        logging.warning(
+            f"Skipping job creation for deal {deal_id}. "
+            f"Stage '{current_stage}' does not match required stage '{REQUIRED_DEAL_STAGE_ID}'."
         )
         return
 
+    logging.info(f"Deal {deal_id} is in the correct stage. Proceeding with job creation.")
+    
     service_categories = event_data.get("service_categories", "")
     service_type = event_data.get("service_type", "")
     enquiry_notes = event_data.get("enquiry_notes", "")
@@ -101,7 +109,6 @@ def handle_create_job(event_data):
     }
 
     job_uuid = create_servicem8_job(job_data)
-    print(f"Created job in sm8 with UUID: {job_uuid}")
     if not job_uuid:
         return
 
