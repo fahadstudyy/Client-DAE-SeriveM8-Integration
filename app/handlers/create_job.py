@@ -2,7 +2,10 @@ import os
 import logging
 import requests
 from datetime import date
-from app.utility.hubspot import get_deal_details_with_associations
+from app.utility.hubspot import (
+    get_deal_details_with_associations,
+    get_objects_properties,
+)
 
 SERVICEM8_API_KEY = os.getenv("SERVICEM8_API_KEY")
 HUBSPOT_API_TOKEN = os.getenv("HUBSPOT_API_TOKEN")
@@ -76,8 +79,10 @@ def handle_create_job(event_data):
         logging.error(f"Could not retrieve details for deal {deal_id}. Aborting.")
         return
 
-    # --- Validation Logic ---
-    current_stage = details.get("dealstage")
+    deal_details = get_objects_properties("deals", [deal_id], ["dealstage"])
+    deal_stage = deal_details[0].get("properties", {})
+
+    current_stage = deal_stage.get("dealstage")
     if current_stage != REQUIRED_DEAL_STAGE_ID:
         logging.warning(
             f"Skipping job creation for deal {deal_id}. "
@@ -86,7 +91,7 @@ def handle_create_job(event_data):
         return
 
     logging.info(f"Deal {deal_id} is in the correct stage. Proceeding with job creation.")
-    
+
     service_categories = event_data.get("service_categories", "")
     service_type = event_data.get("service_type", "")
     enquiry_notes = event_data.get("enquiry_notes", "")
