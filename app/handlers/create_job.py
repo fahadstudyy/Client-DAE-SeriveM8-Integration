@@ -6,6 +6,7 @@ from app.utility.hubspot import get_deal_details_with_associations
 
 SERVICEM8_API_KEY = os.getenv("SERVICEM8_API_KEY")
 HUBSPOT_API_TOKEN = os.getenv("HUBSPOT_API_TOKEN")
+REQUIRED_DEAL_STAGE_ID = "953048614"
 
 
 def create_servicem8_job(job_data):
