@@ -73,7 +73,7 @@ def get_associated_ids(from_object, from_id, to_object):
     except Exception as e:
         logging.error(f"Error getting associations from {from_object} {from_id} to {to_object}: {e}")
         return []
-    
+
 
 def get_objects_properties(object_type, object_ids, properties):
     url = f"https://api.hubapi.com/crm/v3/objects/{object_type}/batch/read"
@@ -90,16 +90,15 @@ def get_objects_properties(object_type, object_ids, properties):
     except Exception as e:
         logging.error(f"Error batch reading {object_type}: {e}")
         return []
-    
+
 def get_deal_details_with_associations(deal_id):
 
     contact_ids = get_associated_ids("deals", deal_id, "contacts")
     if not contact_ids:
         logging.warning(f"Aborting: No contacts associated with deal {deal_id}")
         return None
-    
 
-    contact_props = ["firstname", "lastname", "email", "phone"]
+    contact_props = ["firstname", "lastname", "email", "phone", "sm8_client_id"]
     contacts = get_objects_properties("contacts", [contact_ids[0]], contact_props)
 
     if not contacts:
@@ -107,6 +106,7 @@ def get_deal_details_with_associations(deal_id):
         return None
 
     details = {
+        "id": contacts[0].get("id"),
         "contact": contacts[0].get("properties", {})
     }
     return details
