@@ -61,6 +61,26 @@ def update_hubspot_deal_stage(deal_id, new_stage):
         logging.error(f"Error updating HubSpot deal: {e}")
         return False
 
+
+def update_hubspot_deal_quote_viewed(deal_id, new_stage):
+    url = f"https://api.hubapi.com/crm/v3/objects/deals/{deal_id}"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {HUBSPOT_API_TOKEN}",
+    }
+    payload = {"properties": {"dealstage": new_stage, "sm8_quote_viewed": "true"}}
+    try:
+        response = requests.patch(url, headers=headers, json=payload)
+        response.raise_for_status()
+        logging.info(
+            f"Successfully updated HubSpot deal {deal_id} to stage {new_stage}"
+        )
+        return True
+    except Exception as e:
+        logging.error(f"Error updating HubSpot deal: {e}")
+        return False
+
+
 def get_associated_ids(from_object, from_id, to_object):
     url = f"https://api.hubapi.com/crm/v4/objects/{from_object}/{from_id}/associations/{to_object}"
     headers = {"Authorization": f"Bearer {HUBSPOT_API_TOKEN}"}

@@ -2,7 +2,10 @@ import os
 import logging
 import requests
 from datetime import datetime, timedelta, timezone
-from app.utility.hubspot import QUOTE_VIEWED_PIPELINE_ID, update_hubspot_deal_stage
+from app.utility.hubspot import (
+    QUOTE_VIEWED_PIPELINE_ID,
+    update_hubspot_deal_quote_viewed,
+)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -49,14 +52,25 @@ def hubspot_batch_find_deals_by_job_ids(job_uuids):
     for i in range(0, len(job_uuids), chunk_size):
         batch = job_uuids[i : i + chunk_size]
         filters = [{"propertyName": "sm8_job_id", "operator": "IN", "values": batch}]
-        data = {"filterGroups": [{"filters": filters}], "properties": ["sm8_job_id"]}
+        data = {
+            "filterGroups": [{"filters": filters}],
+            "properties": ["sm8_job_id", "sm8_quote_viewed"],
+        }
         try:
             resp = requests.post(url, json=data, headers=headers)
             resp.raise_for_status()
             results = resp.json().get("results", [])
             for deal in results:
-                job_id = deal.get("properties", {}).get("sm8_job_id")
-                if job_id:
+                properties = deal.get("properties", {})
+                job_id = properties.get("sm8_job_id")
+
+                # Get 'sm8_quote_viewed' and handle None case
+                quote_viewed = properties.get("sm8_quote_viewed")
+                if quote_viewed is not None:
+                    quote_viewed = quote_viewed.lower()
+
+                # Check if 'quote_viewed' is either 'false' or None
+                if job_id and (quote_viewed == "false" or quote_viewed is None):
                     found[job_id] = deal["id"]
         except Exception as e:
             logging.error(f"Error searching deals in HubSpot: {e}")
@@ -66,7 +80,7 @@ def hubspot_batch_find_deals_by_job_ids(job_uuids):
 
 def update_deal_stages(deal_ids, new_stage):
     for deal_id in deal_ids:
-        update_hubspot_deal_stage(deal_id, new_stage)
+        update_hubspot_deal_quote_viewed(deal_id, new_stage)
 
 
 def cron_viewed_proposals_update_deal_stage(new_pipeline_stage):
