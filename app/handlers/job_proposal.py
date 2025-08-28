@@ -69,8 +69,12 @@ def hubspot_batch_find_deals_by_job_ids(job_uuids):
                 if quote_viewed is not None:
                     quote_viewed = quote_viewed.lower()
 
+                print(
+                    f"Deal ID: {deal['id']}, Job ID: {job_id}, Quote Viewed: {quote_viewed}"
+                )
+
                 # Check if 'quote_viewed' is either 'false' or None
-                if job_id and (quote_viewed == "false" or quote_viewed is None):
+                if job_id and (quote_viewed != "true"):
                     found[job_id] = deal["id"]
         except Exception as e:
             logging.error(f"Error searching deals in HubSpot: {e}")
